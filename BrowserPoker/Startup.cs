@@ -4,9 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.IO;
 
 namespace BrowserPoker
 {
@@ -28,7 +30,7 @@ namespace BrowserPoker
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
-            services.AddMvc();
+            //services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -42,18 +44,42 @@ namespace BrowserPoker
                 app.UseDeveloperExceptionPage();
                 app.UseBrowserLink();
             }
-            else
-            {
-                app.UseExceptionHandler("/Home/Error");
-            }
 
+            app.UseDefaultFiles();
             app.UseStaticFiles();
 
-            app.UseMvc(routes =>
+
+            app.Map("/map1", HandleMapTest1);
+            app.Map("/map2", HandleMapTest2);
+            app.Map("/bodytest", HandleRequestBodyTest);
+            app.Run(async context =>
             {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                await context.Response.WriteAsync("Hello from non-Map delegate. <p>");
+            });
+        }
+
+        static void HandleRequestBodyTest(IApplicationBuilder app)
+        {
+            app.Run(async context =>
+            {
+                var result = new StreamReader(context.Request.Body).ReadToEnd();
+                await context.Response.WriteAsync("body processed: " + result);
+            });
+        }
+
+        static void HandleMapTest1(IApplicationBuilder app)
+        {
+            app.Run(async context =>
+            {
+                await context.Response.WriteAsync("Map Test 1");
+            });
+        }
+
+        static void HandleMapTest2(IApplicationBuilder app)
+        {
+            app.Run(async context =>
+            {
+                await context.Response.WriteAsync("Map Test 2");
             });
         }
     }
