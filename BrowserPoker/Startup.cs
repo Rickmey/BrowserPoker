@@ -9,11 +9,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.IO;
+using BrowserPoker.GameObjects;
 
 namespace BrowserPoker
 {
     public class Startup
     {
+        static Dictionary<string, Table> IDTableMap = new Dictionary<string, Table>();
+
         public Startup(IHostingEnvironment env)
         {
             var builder = new ConfigurationBuilder()
@@ -52,9 +55,23 @@ namespace BrowserPoker
             app.Map("/map1", HandleMapTest1);
             app.Map("/map2", HandleMapTest2);
             app.Map("/bodytest", HandleRequestBodyTest);
+            app.Map("/onRequestID", HandleOnRequestID);
+
             app.Run(async context =>
             {
                 await context.Response.WriteAsync("Hello from non-Map delegate. <p>");
+            });
+        }
+
+        static void HandleOnRequestID(IApplicationBuilder app)
+        {
+            app.Run(async context =>
+            {
+                // TODO check if there is no other way to get or create a session id
+                var id = Guid.NewGuid();
+                var table = new Table(id);
+                IDTableMap.Add(id.ToString(), table);
+                await context.Response.WriteAsync(id.ToString());
             });
         }
 
