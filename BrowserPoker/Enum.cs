@@ -8,8 +8,18 @@ namespace BrowserPoker
     {
         InitializeGame = 1,
         StartGame = 2,
-        SetBlinds = 4,
+        PostBlinds = 4,
         PlayerAction = 8,
         DealBoard = 16
+    }
+
+    public enum PlayerAction
+    {
+        Fold,
+        PostSmallBlind,
+        PostBigBlind,
+        Bet,
+        Call, // includes check
+        AllIn
     }
 }
