@@ -21,7 +21,6 @@ namespace BrowserPoker.GameObjects
         public ulong[] Cards = new ulong[2];
 
         public bool IsSessionUser = false;
-
     }
 
     public class PlayerViewModel

@@ -25,6 +25,8 @@ namespace BrowserPoker.GameObjects
         /// </summary>
         Random rnd = new Random();
 
+        int buttonPosition;
+
         Player[] players;
 
         Queue<ulong> deck;
@@ -56,6 +58,9 @@ namespace BrowserPoker.GameObjects
             switch (requestObject.RequestType)
             {
                 case RequestTypes.InitializeGame:
+                    // randomize button position
+                    buttonPosition = rnd.Next(playerCount);
+
                     // create players
                     players = new Player[playerCount];
                     for (int i = 0; i < players.Length; i++)
@@ -67,6 +72,9 @@ namespace BrowserPoker.GameObjects
                     break;
 
                 case RequestTypes.StartGame:
+                    buttonPosition++;
+                    if (buttonPosition >= playerCount)
+                        buttonPosition = 0;
                     // new deck
                     deck = new Queue<ulong>(Utils.CardMasksTable.OrderBy(x => rnd.Next()).ToArray());
 
@@ -83,8 +91,9 @@ namespace BrowserPoker.GameObjects
 
             // build answer object
             result.ID = requestObject.ID;
-            result.PlayerViewModels = playersToModels(players);
             result.RequestType = requestObject.RequestType;
+            result.ButtonPosition = buttonPosition;
+            result.PlayerViewModels = playersToModels(players);
             return result;
         }
 

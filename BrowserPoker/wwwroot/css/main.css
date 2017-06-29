@@ -2,3 +2,7 @@
 #player-parent {
     display: inline-flex;
 }
+
+.button-position {
+    background-color: aqua;
+}
