@@ -11,11 +11,12 @@ window.addEventListener('load', function () {
         playerModels[i] = new PlayerViewModel(i);
     }
 
+    requestID(requestInitializeGame);
+
     document.getElementById('new-game-button').addEventListener('click', function () {
         requestStartGame();
     });
 
-    requestID(requestInitializeGame);
 });
 
 // REQUESTS
@@ -29,7 +30,7 @@ function jsonToPlayerViewModel(json) {
         viewModel.setCards(backendModel.Cards);
         viewModel.setPosition(backendModel.Position);
         viewModel.setBankRoll(backendModel.BankRoll);
-        viewModel.setHasButton(viewModel.getPosition() == currentButtonPosition);
+        viewModel.setHasButton(viewModel.getPosition() === currentButtonPosition);
     }
 }
 
@@ -72,6 +73,7 @@ function RequestHandler() {
                 }
             }
         };
+        console.log(obj);
         request.open('POST', path, true);
         request.setRequestHeader("Content-Type", "application/json");
         if (obj === undefined)

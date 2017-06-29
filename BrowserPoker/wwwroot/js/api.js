@@ -11,8 +11,11 @@ function Api() {
     this.playerCount = 6;
 
     this.RequestTypeEnum = Object.freeze({
-        "InitializeGame": 0,
-        "StartGame": 1
+        "InitializeGame": 1,
+        "StartGame": 2,
+        "SetBlinds": 4,
+        "PlayerAction": 8,
+        "DealBoard": 16
     });
 
     this.RequestPathEnum = Object.freeze({

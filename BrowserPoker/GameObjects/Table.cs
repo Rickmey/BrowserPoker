@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace BrowserPoker.GameObjects
 {
@@ -24,6 +23,13 @@ namespace BrowserPoker.GameObjects
         /// This way diffent tables will deal the same cards when they are initialized at the same time. 
         /// </summary>
         Random rnd = new Random();
+
+        /// <summary>
+        /// There are only limited possible next actions.
+        /// If the next action doesn't match one of the expected actions there's something wrong.
+        /// </summary>
+        RequestTypes expectedNextActions = RequestTypes.InitializeGame;
+
 
         int buttonPosition;
 
@@ -54,6 +60,11 @@ namespace BrowserPoker.GameObjects
                 return playerModels;
             };
 
+            // check if the requested action matches the expected action
+            if ((requestObject.RequestType & expectedNextActions) == 0)
+                throw new ArgumentException("requested action is not expected");
+            //if (!requestObject.RequestType.HasFlag(expectedNextActions))
+
             GameStateModel result = new GameStateModel();
             switch (requestObject.RequestType)
             {
@@ -63,12 +74,13 @@ namespace BrowserPoker.GameObjects
 
                     // create players
                     players = new Player[playerCount];
-                    for (int i = 0; i < players.Length; i++)
+                    players[0] = new Player() { Name = "Player", BankRoll = 1000d, IsSessionUser = true }; // player 0 is the session user
+                    for (int i = 1; i < players.Length; i++)
                     {
-                        players[i] = new Player() { Name = randomString(), BankRoll = 1000d };
+                        players[i] = new Player() { Name = "AI: " + randomString(), BankRoll = 1000d };
                     }
-                    // player 0 is the current user
-                    players[0].IsSessionUser = true;
+
+                    expectedNextActions = RequestTypes.StartGame;
                     break;
 
                 case RequestTypes.StartGame:
@@ -84,12 +96,21 @@ namespace BrowserPoker.GameObjects
                         players[i].Cards[0] = deck.Dequeue();
                         players[i].Cards[1] = deck.Dequeue();
                     }
+
+                    expectedNextActions = (RequestTypes.SetBlinds | RequestTypes.StartGame);
+                    break;
+
+                case RequestTypes.SetBlinds:
+
+
+
+                    expectedNextActions = (RequestTypes.PlayerAction | RequestTypes.StartGame);
                     break;
 
                 default: throw new ArgumentException("unknown request type");
             }
 
-            // build answer object
+            // build response object
             result.ID = requestObject.ID;
             result.RequestType = requestObject.RequestType;
             result.ButtonPosition = buttonPosition;
@@ -107,7 +128,7 @@ namespace BrowserPoker.GameObjects
         {
             string input = "abcdefghijklmnopqrstuvwxyz0123456789";
             StringBuilder builder = new StringBuilder();
-            int size = rnd.Next(5, 21);
+            int size = rnd.Next(5, 10);
             char ch;
             for (int i = 0; i < size; i++)
             {
