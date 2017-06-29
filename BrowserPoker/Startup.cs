@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.IO;
 using BrowserPoker.GameObjects;
+using Newtonsoft.Json;
 
 namespace BrowserPoker
 {
@@ -51,10 +52,7 @@ namespace BrowserPoker
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
-
-            app.Map("/map1", HandleMapTest1);
-            app.Map("/map2", HandleMapTest2);
-            app.Map("/bodytest", HandleRequestBodyTest);
+            app.Map("/onDefault", HandleOnDefaultRequest);
             app.Map("/onRequestID", HandleOnRequestID);
 
             app.Run(async context =>
@@ -63,6 +61,35 @@ namespace BrowserPoker
             });
         }
 
+
+        /// <summary>
+        /// Handle default request. Reads session id and redirects the request to the corresponding game instance (table).
+        /// </summary>
+        /// <param name="app"></param>
+        static void HandleOnDefaultRequest(IApplicationBuilder app)
+        {
+            app.Run(async context =>
+            {
+                string input;
+                using (var reader = new StreamReader(context.Request.Body))
+                {
+                    input = reader.ReadToEnd();
+                }
+                var requestObject = JsonConvert.DeserializeObject<RequestObject>(input);
+
+                GameStateModel result = null;
+                if (requestObject.ID != null)
+                    result = IDTableMap[requestObject.ID.ToString()]?.HandleRequest(requestObject);
+
+                await context.Response.WriteAsync(JsonConvert.SerializeObject(result));
+            });
+        }
+
+        /// <summary>
+        /// Handles request for new sessions. Creates an game instance (table).
+        /// TODO: handle closed sessions.
+        /// </summary>
+        /// <param name="app"></param>
         static void HandleOnRequestID(IApplicationBuilder app)
         {
             app.Run(async context =>
@@ -72,31 +99,6 @@ namespace BrowserPoker
                 var table = new Table(id);
                 IDTableMap.Add(id.ToString(), table);
                 await context.Response.WriteAsync(id.ToString());
-            });
-        }
-
-        static void HandleRequestBodyTest(IApplicationBuilder app)
-        {
-            app.Run(async context =>
-            {
-                var result = new StreamReader(context.Request.Body).ReadToEnd();
-                await context.Response.WriteAsync("body processed: " + result);
-            });
-        }
-
-        static void HandleMapTest1(IApplicationBuilder app)
-        {
-            app.Run(async context =>
-            {
-                await context.Response.WriteAsync("Map Test 1");
-            });
-        }
-
-        static void HandleMapTest2(IApplicationBuilder app)
-        {
-            app.Run(async context =>
-            {
-                await context.Response.WriteAsync("Map Test 2");
             });
         }
     }
