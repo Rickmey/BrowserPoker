@@ -1,4 +1,5 @@
 ﻿using BrowserPoker.GameObjects.PokerEval;
+using System.Collections.Generic;
 
 namespace BrowserPoker.GameObjects
 {
@@ -17,6 +18,8 @@ namespace BrowserPoker.GameObjects
         public ulong[] Cards = new ulong[2];
 
         public bool IsSessionUser = false;
+
+        public SortedList<PlayerAction, double> HandActions = new SortedList<PlayerAction, double>();
     }
 
     public class PlayerViewModel
@@ -25,12 +28,14 @@ namespace BrowserPoker.GameObjects
         public string Cards;
         public double BankRoll;
         public int Position;
+        public SortedList<PlayerAction, double> HandActions;
 
         public PlayerViewModel(Player player, int position)
         {
             Name = player.Name;
             BankRoll = player.BankRoll;
             Position = position;
+            HandActions = player.HandActions;
             Cards = player.IsSessionUser ? Utils.CardMaskToString(player.Cards[0] | player.Cards[1]) : Cards = "? ?";
         }
     }

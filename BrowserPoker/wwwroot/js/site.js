@@ -14,7 +14,7 @@ window.addEventListener('load', function () {
     requestID(requestInitializeGame);
 
     document.getElementById('new-game-button').addEventListener('click', function () {
-        requestStartGame();
+        requestStartGame(function () { generalRequest(Api.RequestTypeEnum.PostBlinds, undefined) });
     });
 
 });
@@ -22,7 +22,7 @@ window.addEventListener('load', function () {
 // REQUESTS
 function jsonToPlayerViewModel(json) {
     currentButtonPosition = json.ButtonPosition;
-
+    document.getElementById('pot-element').innerText = 'Pot: ' + json.Pot + 'u';
     for (var i = 0; i < playerModels.length; i++) {
         var backendModel = json.PlayerViewModels[i];
         var viewModel = playerModels[i];
@@ -31,7 +31,26 @@ function jsonToPlayerViewModel(json) {
         viewModel.setPosition(backendModel.Position);
         viewModel.setBankRoll(backendModel.BankRoll);
         viewModel.setHasButton(viewModel.getPosition() === currentButtonPosition);
+        viewModel.setPlayerActions(backendModel.HandActions);
     }
+}
+
+function generalRequest(type, next) {
+    requestHandler.sendRequest(Api.RequestPathEnum.Default, { 'RequestType': type }, function (request) {
+        var json = JSON.parse(request.response);
+        jsonToPlayerViewModel(json);
+        if (next !== undefined)
+            next();
+    });
+}
+
+function requestPostBlinds(next) {
+    requestHandler.sendRequest(Api.RequestPathEnum.Default, { 'RequestType': Api.RequestTypeEnum.PostBlinds }, function (request) {
+        var json = JSON.parse(request.response);
+        jsonToPlayerViewModel(json);
+        if (next !== undefined)
+            next();
+    });
 }
 
 function requestInitializeGame(next) {
@@ -44,6 +63,10 @@ function requestInitializeGame(next) {
 }
 
 function requestStartGame(next) {
+    // clear all previous hand actions
+    for (var i = 0; i < playerModels.length; i++) {
+        playerModels[i].setPlayerActions({});
+    }
     requestHandler.sendRequest(Api.RequestPathEnum.Default, { 'RequestType': Api.RequestTypeEnum.StartGame }, function (request) {
         var json = JSON.parse(request.response);
         jsonToPlayerViewModel(json);
@@ -131,6 +154,26 @@ function PlayerViewModel(index) {
             playerElement.classList.remove('button-position');
     };
 
+    var playerActions;
+    this.setPlayerActions = function (actions) {
+        // remove all children
+        while (playerActionsElement.firstChild) {
+            playerActionsElement.removeChild(playerActionsElement.firstChild);
+        }
+
+        if (Object.keys(actions).length === 0)
+            return;
+
+        playerActions = actions;
+        console.log(Object.keys(playerActions)[0]);
+        for (var i = 0; i < Object.keys(playerActions).length; i++) {
+            var child = document.createElement('li');
+            child.innerText = Object.keys(playerActions)[i] + ': ' + playerActions[Object.keys(playerActions)[i]];
+            playerActionsElement.appendChild(child);
+        }
+    }
+
+
     //DOM ELEMENTS
     var parent = document.getElementById('player-parent');
 
@@ -152,6 +195,10 @@ function PlayerViewModel(index) {
     var cardsElement = document.createElement('li');
     playerElement.appendChild(cardsElement);
     this.setCards('? ?');
+
+    var playerActionsElement = document.createElement('ul');
+    playerElement.appendChild(playerActionsElement);
+
 
     document.getElementById('player-parent').appendChild(playerElement);
 

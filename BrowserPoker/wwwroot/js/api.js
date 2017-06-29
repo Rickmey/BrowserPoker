@@ -13,9 +13,18 @@ function Api() {
     this.RequestTypeEnum = Object.freeze({
         "InitializeGame": 1,
         "StartGame": 2,
-        "SetBlinds": 4,
+        "PostBlinds": 4,
         "PlayerAction": 8,
         "DealBoard": 16
+    });
+
+    this.PlayerActionsEnum = Object.freeze({
+        "Fold": 1,
+        "PostSmallBlind": 2,
+        "PostBigBlind": 4,
+        "Bet": 8,
+        "Call": 16
+        "AllIn": 32
     });
 
     this.RequestPathEnum = Object.freeze({

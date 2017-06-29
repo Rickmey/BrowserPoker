@@ -12,6 +12,9 @@ namespace BrowserPoker.GameObjects
     public class Table
     {
         const int playerCount = 6;
+        const double betSize = 2d;
+        const double smallBlindSize = betSize / 2;
+        const double bigBet = betSize * 2;
 
         /// <summary>
         /// ID to map client to this instance.
@@ -30,6 +33,11 @@ namespace BrowserPoker.GameObjects
         /// </summary>
         RequestTypes expectedNextActions = RequestTypes.InitializeGame;
 
+
+        /// <summary>
+        /// Amount of money currently in the game.
+        /// </summary>
+        double pot;
 
         int buttonPosition;
 
@@ -84,25 +92,46 @@ namespace BrowserPoker.GameObjects
                     break;
 
                 case RequestTypes.StartGame:
+                    // move button
                     buttonPosition++;
                     if (buttonPosition >= playerCount)
                         buttonPosition = 0;
                     // new deck
                     deck = new Queue<ulong>(Utils.CardMasksTable.OrderBy(x => rnd.Next()).ToArray());
 
+                    // clear pot
+                    // TODO: if the hand is restarted, the money in the pot will disappear
+                    pot = 0;
+
                     // deal cards
                     for (int i = 0; i < players.Length; i++)
                     {
-                        players[i].Cards[0] = deck.Dequeue();
-                        players[i].Cards[1] = deck.Dequeue();
+                        var player = players[i];
+                        player.Cards[0] = deck.Dequeue();
+                        player.Cards[1] = deck.Dequeue();
+                        player.HandActions.Clear();
                     }
 
-                    expectedNextActions = (RequestTypes.SetBlinds | RequestTypes.StartGame);
+                    expectedNextActions = (RequestTypes.PostBlinds | RequestTypes.StartGame);
                     break;
 
-                case RequestTypes.SetBlinds:
+                case RequestTypes.PostBlinds:
+                    int smallBlindPosition = buttonPosition + 1;
+                    if (smallBlindPosition >= playerCount)
+                        smallBlindPosition = 0;
+                    int bigBlindPosition = smallBlindPosition + 1;
+                    if (bigBlindPosition >= playerCount)
+                        bigBlindPosition = 0;
 
+                    var smallBlindPlayer = players[smallBlindPosition];
+                    smallBlindPlayer.BankRoll -= smallBlindSize;
+                    pot += smallBlindSize;
+                    smallBlindPlayer.HandActions.Add(PlayerAction.PostSmallBlind, smallBlindSize);
 
+                    var bigBlindPlayer = players[bigBlindPosition];
+                    bigBlindPlayer.BankRoll -= betSize;
+                    pot += betSize;
+                    bigBlindPlayer.HandActions.Add(PlayerAction.PostBigBlind, betSize);
 
                     expectedNextActions = (RequestTypes.PlayerAction | RequestTypes.StartGame);
                     break;
@@ -115,6 +144,7 @@ namespace BrowserPoker.GameObjects
             result.RequestType = requestObject.RequestType;
             result.ButtonPosition = buttonPosition;
             result.PlayerViewModels = playersToModels(players);
+            result.Pot = pot;
             return result;
         }
 
