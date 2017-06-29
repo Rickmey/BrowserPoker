@@ -31,7 +31,7 @@ namespace BrowserPoker.GameObjects
         /// There are only limited possible next actions.
         /// If the next action doesn't match one of the expected actions there's something wrong.
         /// </summary>
-        RequestTypes expectedNextActions = RequestTypes.InitializeGame;
+        RequestTypes expectedNextActions = RequestTypes.StartGame;
 
 
         /// <summary>
@@ -76,22 +76,23 @@ namespace BrowserPoker.GameObjects
             GameStateModel result = new GameStateModel();
             switch (requestObject.RequestType)
             {
-                case RequestTypes.InitializeGame:
-                    // randomize button position
-                    buttonPosition = rnd.Next(playerCount);
+                case RequestTypes.StartGame:
 
-                    // create players
-                    players = new Player[playerCount];
-                    players[0] = new Player() { Name = "Player", BankRoll = 1000d, IsSessionUser = true }; // player 0 is the session user
-                    for (int i = 1; i < players.Length; i++)
+                    // initialize when this is the first hand
+                    if (players == null)
                     {
-                        players[i] = new Player() { Name = "AI: " + randomString(), BankRoll = 1000d };
+                        // randomize button position
+                        buttonPosition = rnd.Next(playerCount);
+
+                        // create players
+                        players = new Player[playerCount];
+                        players[0] = new Player() { Name = "Player", BankRoll = 1000d, IsSessionUser = true }; // player 0 is the session user
+                        for (int i = 1; i < players.Length; i++)
+                        {
+                            players[i] = new Player() { Name = "AI: " + randomString(), BankRoll = 1000d };
+                        }
                     }
 
-                    expectedNextActions = RequestTypes.StartGame;
-                    break;
-
-                case RequestTypes.StartGame:
                     // move button
                     buttonPosition++;
                     if (buttonPosition >= playerCount)
@@ -112,10 +113,7 @@ namespace BrowserPoker.GameObjects
                         player.HandActions.Clear();
                     }
 
-                    expectedNextActions = (RequestTypes.PostBlinds | RequestTypes.StartGame);
-                    break;
-
-                case RequestTypes.PostBlinds:
+                    // post blinds
                     int smallBlindPosition = buttonPosition + 1;
                     if (smallBlindPosition >= playerCount)
                         smallBlindPosition = 0;
@@ -140,8 +138,6 @@ namespace BrowserPoker.GameObjects
             }
 
             // build response object
-            result.ID = requestObject.ID;
-            result.RequestType = requestObject.RequestType;
             result.ButtonPosition = buttonPosition;
             result.PlayerViewModels = playersToModels(players);
             result.Pot = pot;

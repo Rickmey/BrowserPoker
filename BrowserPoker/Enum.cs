@@ -6,11 +6,9 @@ namespace BrowserPoker
     [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
     public enum RequestTypes
     {
-        InitializeGame = 1,
-        StartGame = 2,
-        PostBlinds = 4,
-        PlayerAction = 8,
-        DealBoard = 16
+        StartGame = 1,
+        PlayerAction = 2,
+        DealBoard = 4
     }
 
     public enum PlayerAction
