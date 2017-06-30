@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <Content Include="wwwroot\css\main.css" />
-    <Content Include="wwwroot\css\Msain.css" />
     <Content Include="wwwroot\index.html" />
     <Content Include="wwwroot\js\api.js" />
   </ItemGroup>

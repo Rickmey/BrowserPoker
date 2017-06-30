@@ -48,10 +48,8 @@ namespace BrowserPoker.GameObjects
         public Table(Guid id)
         {
             ID = id;
-
             // create deck
             deck = new Queue<ulong>(Utils.CardMasksTable.OrderBy(x => rnd.Next()).ToArray());
-
         }
 
         public GameStateModel HandleRequest(RequestObject requestObject)

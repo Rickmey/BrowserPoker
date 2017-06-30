@@ -1,8 +1,24 @@
 ﻿
-#player-parent {
+body {
+    margin: 10px;
+}
+
+#player-parent, #dealer-parent-element {
     display: inline-flex;
+    -moz-column-count: 6;
+    -webkit-column-count: 6;
+    column-count: 6;
+    width: 80%;
 }
 
 .button-position {
     background-color: aqua;
+}
+
+.dealer-button-img {
+    object-fit: fill;
+}
+
+.hidden {
+    visibility: hidden;
 }
